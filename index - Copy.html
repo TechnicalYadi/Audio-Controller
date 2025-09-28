@@ -15,7 +15,7 @@
     <button onclick="showPage('8d')">🎧 8D Audio</button>
     <button onclick="showPage('mashup')">🎶 Mashup</button>
     <button onclick="showPage('remix')">🔊 Remix</button>
-    <button onclick="window.location.href='Bass Boosted.html'">🎵 Bass Boosted</button>
+    <button onclick="window.location.href='bass-boosted.html'">🎵 Bass Boosted</button>
   </div>
 
   <!-- Pages -->
@@ -50,7 +50,7 @@
       <input type="file" id="song" accept="audio/*"/> <br/><br/>
       <label>Tempo: <input type="range" id="tempo" min="0.5" max="2" step="0.1" value="1"></label>
       <span id="tempoVal">1x</span><br/>
-      <label>Pitch: <input type="range" id="pitch" min="-1000" max="1000" step="100" value="0"></label>
+      <label>Pitch (Not available yet): <input type="range" id="pitch" min="-1000" max="1000" step="100" value="0" disabled></label>
       <span id="pitchVal">0</span><br/><br/>
       <button id="playRemix">Play Remix</button>
       <div id="remixPlayer"></div>
@@ -78,6 +78,13 @@
       const source = audioCtx.createMediaElementSource(audioElement);
       const panner = audioCtx.createStereoPanner();
       source.connect(panner).connect(audioCtx.destination);
+
+      // resume audio context on user interaction
+      document.body.addEventListener("click", () => {
+        if (audioCtx.state === "suspended") {
+          audioCtx.resume();
+        }
+      });
 
       let angle = -1;
       let step = 0.02;
@@ -118,9 +125,6 @@
     document.getElementById("tempo").addEventListener("input", e => {
       document.getElementById("tempoVal").innerText = e.target.value + "x";
     });
-    document.getElementById("pitch").addEventListener("input", e => {
-      document.getElementById("pitchVal").innerText = e.target.value;
-    });
 
     document.getElementById("playRemix").addEventListener("click", () => {
       const file = document.getElementById("song").files[0];
@@ -131,11 +135,7 @@
       audio.controls = true;
 
       const tempo = parseFloat(document.getElementById("tempo").value);
-      const pitch = parseInt(document.getElementById("pitch").value);
-
       audio.playbackRate = tempo;
-      audio.preservesPitch = false;
-      audio.detune = pitch;
 
       document.getElementById("remixPlayer").innerHTML = "";
       document.getElementById("remixPlayer").appendChild(audio);
@@ -146,7 +146,7 @@
   <style>
     body { font-family: Arial; background: #f5f5f5; text-align:center; padding:20px; }
     .menu { margin:20px; }
-    .menu button { margin:5px; padding:10px 20px; }
+    .menu button { margin:5px; padding:10px 20px; cursor:pointer; }
     .page { display:none; }
     .page.active { display:block; }
   </style>
