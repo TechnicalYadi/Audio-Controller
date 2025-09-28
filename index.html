@@ -50,8 +50,6 @@
       <input type="file" id="song" accept="audio/*"/> <br/><br/>
       <label>Tempo: <input type="range" id="tempo" min="0.5" max="2" step="0.1" value="1"></label>
       <span id="tempoVal">1x</span><br/>
-      <label>Pitch (Not available yet): <input type="range" id="pitch" min="-1000" max="1000" step="100" value="0" disabled></label>
-      <span id="pitchVal">0</span><br/><br/>
       <button id="playRemix">Play Remix</button>
       <div id="remixPlayer"></div>
     </div>
@@ -79,7 +77,6 @@
       const panner = audioCtx.createStereoPanner();
       source.connect(panner).connect(audioCtx.destination);
 
-      // resume audio context on user interaction
       document.body.addEventListener("click", () => {
         if (audioCtx.state === "suspended") {
           audioCtx.resume();
@@ -142,13 +139,5 @@
       audio.play();
     });
   </script>
-
-  <style>
-    body { font-family: Arial; background: #f5f5f5; text-align:center; padding:20px; }
-    .menu { margin:20px; }
-    .menu button { margin:5px; padding:10px 20px; cursor:pointer; }
-    .page { display:none; }
-    .page.active { display:block; }
-  </style>
 </body>
 </html>

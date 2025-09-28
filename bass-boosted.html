@@ -3,152 +3,44 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Audio Tools</title>
+  <title>Bass Boosted</title>
   <link rel="stylesheet" href="style.css"/>
 </head>
 <body>
-  <h1>🎶 My Audio Website 🎶</h1>
+  <h1>🎵 Bass Boosted Player 🎵</h1>
+  <button onclick="window.location.href='index.html'">⬅ Back</button>
+  <br/><br/>
 
-  <!-- Navigation -->
-  <div class="menu">
-    <button onclick="showPage('home')">🏠 Home</button>
-    <button onclick="showPage('8d')">🎧 8D Audio</button>
-    <button onclick="showPage('mashup')">🎶 Mashup</button>
-    <button onclick="showPage('remix')">🔊 Remix</button>
-    <button onclick="window.location.href='bass-boosted.html'">🎵 Bass Boosted</button>
-  </div>
+  <input type="file" id="bassFile" accept="audio/*"/>
+  <br/><br/>
+  <audio id="bassPlayer" controls></audio>
 
-  <!-- Pages -->
-  <div id="content">
-
-    <!-- Home -->
-    <div id="home" class="page active">
-      <h2>Welcome!</h2>
-      <p>Select a feature from above.</p>
-    </div>
-
-    <!-- 8D Audio -->
-    <div id="8d" class="page">
-      <h2>🎧 8D Audio Effect</h2>
-      <input type="file" id="audioFile" accept="audio/*"/>
-      <audio id="audioPlayer" controls></audio>
-    </div>
-
-    <!-- Mashup -->
-    <div id="mashup" class="page">
-      <h2>🎶 Mashup Maker</h2>
-      <input type="file" id="song1" accept="audio/*"/> <br/><br/>
-      <input type="file" id="song2" accept="audio/*"/> <br/><br/>
-      <label>Crossfade Duration (sec): <input type="number" id="fadeTime" value="5" min="1" max="15"></label>
-      <br/><br/>
-      <button id="playMashup">Play Mashup</button>
-    </div>
-
-    <!-- Remix -->
-    <div id="remix" class="page">
-      <h2>🔊 Remix Generator</h2>
-      <input type="file" id="song" accept="audio/*"/> <br/><br/>
-      <label>Tempo: <input type="range" id="tempo" min="0.5" max="2" step="0.1" value="1"></label>
-      <span id="tempoVal">1x</span><br/>
-      <label>Pitch (Not available yet): <input type="range" id="pitch" min="-1000" max="1000" step="100" value="0" disabled></label>
-      <span id="pitchVal">0</span><br/><br/>
-      <button id="playRemix">Play Remix</button>
-      <div id="remixPlayer"></div>
-    </div>
-  </div>
-
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
   <script>
-    // Page Switching
-    function showPage(pageId) {
-      document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
-      document.getElementById(pageId).classList.add("active");
-    }
-
-    // 8D Audio Effect
-    document.getElementById("audioFile").addEventListener("change", e => {
+    document.getElementById("bassFile").addEventListener("change", e => {
       const file = e.target.files[0];
       if (!file) return;
 
       const url = URL.createObjectURL(file);
-      const audioElement = document.getElementById("audioPlayer");
+      const audioElement = document.getElementById("bassPlayer");
       audioElement.src = url;
 
       const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
       const source = audioCtx.createMediaElementSource(audioElement);
-      const panner = audioCtx.createStereoPanner();
-      source.connect(panner).connect(audioCtx.destination);
 
-      // resume audio context on user interaction
+      // bass boost filter
+      const biquadFilter = audioCtx.createBiquadFilter();
+      biquadFilter.type = "lowshelf";
+      biquadFilter.frequency.value = 200;
+      biquadFilter.gain.value = 15;
+
+      source.connect(biquadFilter).connect(audioCtx.destination);
+
       document.body.addEventListener("click", () => {
         if (audioCtx.state === "suspended") {
           audioCtx.resume();
         }
       });
-
-      let angle = -1;
-      let step = 0.02;
-      setInterval(() => {
-        panner.pan.value = angle;
-        angle += step;
-        if (angle >= 1 || angle <= -1) step = -step;
-      }, 100);
-    });
-
-    // Mashup Maker
-    document.getElementById("playMashup").addEventListener("click", async () => {
-      const file1 = document.getElementById("song1").files[0];
-      const file2 = document.getElementById("song2").files[0];
-      if (!file1 || !file2) { alert("Select both songs"); return; }
-
-      const url1 = URL.createObjectURL(file1);
-      const url2 = URL.createObjectURL(file2);
-
-      const gainNode1 = new Tone.Gain(1).toDestination();
-      const gainNode2 = new Tone.Gain(0).toDestination();
-
-      const player1 = new Tone.Player(url1).connect(gainNode1);
-      const player2 = new Tone.Player(url2).connect(gainNode2);
-
-      await Tone.loaded();
-
-      player1.start();
-      setTimeout(() => {
-        player2.start();
-        const fadeTime = parseInt(document.getElementById("fadeTime").value) || 5;
-        gainNode1.gain.rampTo(0, fadeTime);
-        gainNode2.gain.rampTo(1, fadeTime);
-      }, 10000);
-    });
-
-    // Remix Generator
-    document.getElementById("tempo").addEventListener("input", e => {
-      document.getElementById("tempoVal").innerText = e.target.value + "x";
-    });
-
-    document.getElementById("playRemix").addEventListener("click", () => {
-      const file = document.getElementById("song").files[0];
-      if (!file) { alert("Select a song"); return; }
-
-      const url = URL.createObjectURL(file);
-      const audio = new Audio(url);
-      audio.controls = true;
-
-      const tempo = parseFloat(document.getElementById("tempo").value);
-      audio.playbackRate = tempo;
-
-      document.getElementById("remixPlayer").innerHTML = "";
-      document.getElementById("remixPlayer").appendChild(audio);
-      audio.play();
     });
   </script>
-
-  <style>
-    body { font-family: Arial; background: #f5f5f5; text-align:center; padding:20px; }
-    .menu { margin:20px; }
-    .menu button { margin:5px; padding:10px 20px; cursor:pointer; }
-    .page { display:none; }
-    .page.active { display:block; }
-  </style>
 </body>
 </html>
